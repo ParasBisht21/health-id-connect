@@ -12,6 +12,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        border: "#333333", // Adding the border color definition
         background: {
           DEFAULT: '#121212',
           dark: '#0A0A0A',
