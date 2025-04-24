@@ -12,7 +12,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "#333333", // Adding the border color definition
+        border: "#333333", // Keeping existing border color
         background: {
           DEFAULT: '#121212',
           dark: '#0A0A0A',
@@ -21,9 +21,12 @@ export default {
           green: '#10B981',
           cyan: '#22D3EE',
         },
+        foreground: {
+          DEFAULT: 'hsl(var(--foreground))', // Added foreground color definition
+        },
       },
-      boxShadow: {
-        'medical-card': '0 4px 15px rgba(16, 185, 129, 0.2)',
+      textColor: {
+        foreground: 'hsl(var(--foreground))', // Added text color utility
       },
     },
   },
