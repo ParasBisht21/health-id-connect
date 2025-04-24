@@ -42,33 +42,40 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md border-border/10 shadow-lg bg-background">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <img src="/lovable-uploads/70f489f6-f356-463e-b18b-4d61b9c10cc4.png" alt="One Health Logo" className="h-16" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/80 p-4">
+      <Card className="w-full max-w-md border-border/10 shadow-2xl bg-black/40 backdrop-blur-xl">
+        <CardHeader className="space-y-1 text-center pb-8">
+          <div className="flex justify-center mb-6">
+            <div className="rounded-2xl bg-emerald-600/10 p-4 backdrop-blur-sm">
+              <img src="/lovable-uploads/70f489f6-f356-463e-b18b-4d61b9c10cc4.png" alt="One Health Logo" className="h-16 w-16" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">Welcome back</CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardTitle className="text-3xl font-semibold text-white">Welcome back</CardTitle>
+          <CardDescription className="text-base text-gray-400">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-gray-200">Email</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="name@example.com" {...field} type="email" className="pl-10" />
-                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                          placeholder="name@example.com" 
+                          {...field} 
+                          type="email" 
+                          className="pl-10 h-12 bg-white/5 border-white/10 text-white" 
+                        />
+                        <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-400" />
                   </FormItem>
                 )}
               />
@@ -77,47 +84,47 @@ const Login = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-gray-200">Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           placeholder="••••••••"
                           type={showPassword ? "text" : "password"}
-                          className="pr-10 pl-3"
+                          className="pr-10 pl-3 h-12 bg-white/5 border-white/10 text-white"
                           {...field}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3"
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-300"
                           tabIndex={-1}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-5 w-5 text-muted-foreground" />
+                            <EyeOff className="h-5 w-5" />
                           ) : (
-                            <Eye className="h-5 w-5 text-muted-foreground" />
+                            <Eye className="h-5 w-5" />
                           )}
                         </button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-400" />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-brand-green hover:bg-brand-green/90">
+              <Button type="submit" className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-white font-medium">
                 Login
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 text-center text-sm">
-          <div className="text-muted-foreground">
+          <div className="text-gray-400">
             Don't have an account?{" "}
-            <a href="/register" className="text-brand-cyan hover:underline font-medium">
+            <a href="/register" className="text-brand-cyan hover:text-brand-cyan/80 font-medium">
               Register
             </a>
           </div>
-          <a href="/forgot-password" className="text-brand-cyan hover:underline text-sm">
+          <a href="/forgot-password" className="text-brand-cyan hover:text-brand-cyan/80">
             Forgot your password?
           </a>
         </CardFooter>
