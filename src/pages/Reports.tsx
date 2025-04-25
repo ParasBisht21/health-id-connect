@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, FilePdf, FileImage, Upload, Download } from "lucide-react";
+import { FileText, FileImage, Upload, Download } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 // Mock data for medical reports
@@ -71,7 +70,7 @@ const Reports = () => {
   const getFileIcon = (format: string) => {
     switch (format) {
       case 'pdf':
-        return <FilePdf className="h-5 w-5 text-red-500" />;
+        return <FileText className="h-5 w-5 text-red-500" />;
       case 'image':
         return <FileImage className="h-5 w-5 text-blue-500" />;
       default:
