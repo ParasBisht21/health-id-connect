@@ -2,7 +2,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ChartBar, Heart, Hospital, UserRound } from "lucide-react";
+import { ChartBar, Heart, Hospital, UserRound, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
   return (
@@ -59,6 +61,49 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Reports Section */}
+      <Card className="bg-black/40 border-border/10 backdrop-blur-xl mb-8">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold text-white">Medical Reports</CardTitle>
+            <p className="text-sm text-gray-400 mt-1">Access your health records and documents</p>
+          </div>
+          <Link to="/reports">
+            <Button className="bg-brand-green hover:bg-brand-green/90">
+              <FileText className="mr-2 h-4 w-4" /> View All Reports
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white">Blood Test Results</h3>
+                  <p className="text-xs text-gray-400">Uploaded on Apr 20, 2025</p>
+                </div>
+              </div>
+              <Link to="/reports" className="text-xs text-cyan-400 hover:text-cyan-300">View</Link>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white">X-Ray Report</h3>
+                  <p className="text-xs text-gray-400">Uploaded on Mar 15, 2025</p>
+                </div>
+              </div>
+              <Link to="/reports" className="text-xs text-cyan-400 hover:text-cyan-300">View</Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Activity Section */}
       <Card className="bg-black/40 border-border/10 backdrop-blur-xl">
