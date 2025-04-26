@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Card, 
   CardContent
@@ -17,6 +17,8 @@ import { Upload } from "lucide-react";
 import { ReportTable } from '@/components/reports/ReportTable';
 import { ReportUploadForm } from '@/components/reports/ReportUploadForm';
 import { AboutReports } from '@/components/reports/AboutReports';
+import { ReportFilters } from '@/components/reports/ReportFilters';
+import { toast } from "@/components/ui/sonner";
 
 // Mock data for medical reports
 const mockReports = [
@@ -46,11 +48,61 @@ const mockReports = [
     format: "pdf",
     hospital: "Family Health Practice",
     description: "Yearly comprehensive physical examination"
+  },
+  {
+    id: "4",
+    title: "MRI Results",
+    date: "2025-03-28",
+    type: "Radiology",
+    format: "pdf",
+    hospital: "Metro General Hospital",
+    description: "Brain MRI scan results"
+  },
+  {
+    id: "5",
+    title: "Prescription",
+    date: "2025-04-15",
+    type: "Medication",
+    format: "pdf",
+    hospital: "City Medical Center",
+    description: "Monthly prescription for hypertension medications"
   }
 ];
 
 const Reports = () => {
-  const [reports] = useState(mockReports);
+  const [allReports] = useState(mockReports);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  
+  // Extract unique report types for the filter dropdown
+  const reportTypes = useMemo(() => {
+    const types = allReports.map(report => report.type);
+    return [...new Set(types)];
+  }, [allReports]);
+
+  // Filter reports based on search query and selected type
+  const filteredReports = useMemo(() => {
+    return allReports.filter(report => {
+      const matchesSearch = 
+        report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.hospital.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesType = selectedType === 'all' || report.type === selectedType;
+      
+      return matchesSearch && matchesType;
+    });
+  }, [allReports, searchQuery, selectedType]);
+
+  // Handle report download
+  const handleDownloadReport = (reportId: string) => {
+    const report = allReports.find(r => r.id === reportId);
+    if (report) {
+      toast.success(`Downloading ${report.title}`, {
+        description: "Your report will be downloaded shortly."
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -60,7 +112,7 @@ const Reports = () => {
         <p className="text-gray-400">View, upload and manage your medical records</p>
       </header>
 
-      {/* Upload Button and Reports Table */}
+      {/* Upload Button, Search, Filter and Reports Table */}
       <div className="grid gap-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold text-white">Your Reports</h2>
@@ -85,11 +137,29 @@ const Reports = () => {
           </Sheet>
         </div>
 
+        {/* Search and Filters */}
+        <ReportFilters 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          reportTypes={reportTypes}
+        />
+
         <Card className="bg-black/40 border-border/10 backdrop-blur-xl">
           <CardContent className="p-0">
-            <ReportTable reports={reports} />
+            <ReportTable 
+              reports={filteredReports} 
+              onDownload={handleDownloadReport}
+            />
           </CardContent>
         </Card>
+
+        {filteredReports.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400">No reports matching your search criteria</p>
+          </div>
+        )}
 
         <AboutReports />
       </div>
