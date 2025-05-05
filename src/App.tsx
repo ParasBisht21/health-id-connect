@@ -12,6 +12,7 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
+import HospitalLoginPage from "./pages/HospitalLogin";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/hospital-login" element={<HospitalLoginPage />} />
           
           {/* Protected routes with layout */}
           <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
