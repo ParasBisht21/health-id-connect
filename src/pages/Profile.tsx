@@ -84,7 +84,7 @@ const medications = [
 
 const Profile = () => {
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="p-6">
       {/* Header Section */}
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-white mb-2">Patient Profile</h1>
