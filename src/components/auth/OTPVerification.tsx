@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "@/components/ui/sonner";
-import { Shield } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
+import { simulateVerifyOTP, storeAuthToken } from '@/utils/authUtils';
+import { logSecurityEvent } from '@/utils/securityUtils';
 
 interface OTPVerificationProps {
   email: string;
@@ -15,6 +17,7 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
   const [otp, setOtp] = useState("");
   const [resendDisabled, setResendDisabled] = useState(true);
   const [countdown, setCountdown] = useState(30);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -32,7 +35,10 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
   }, [resendDisabled, countdown]);
 
   const handleResendOTP = () => {
-    // In a real app, this would send a new OTP
+    // Log resend request
+    logSecurityEvent('otp_resend_request', { email });
+    
+    // In a real app, this would send a new OTP via API
     toast.success("New OTP sent", {
       description: `A new verification code has been sent to ${email}`
     });
@@ -40,7 +46,7 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
     setCountdown(30);
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (otp.length !== 6) {
       toast.error("Invalid OTP", {
         description: "Please enter the complete 6-digit code"
@@ -48,10 +54,44 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
       return;
     }
     
-    // In a real app, this would verify the OTP with the backend
-    // For demo purposes, we'll just accept any 6-digit code
-    toast.success("OTP verified successfully");
-    onVerified();
+    try {
+      setLoading(true);
+      
+      // Log OTP verification attempt
+      logSecurityEvent('otp_verification_attempt', { email });
+      
+      // Simulate API call to verify OTP
+      const result = await simulateVerifyOTP(email, otp);
+      
+      if (result.success && result.token) {
+        // Store JWT token
+        storeAuthToken(result.token);
+        
+        toast.success("OTP verified successfully");
+        
+        // Log successful verification
+        logSecurityEvent('otp_verification_successful', { email });
+        
+        onVerified();
+      } else {
+        toast.error("Verification failed", {
+          description: result.message || "Invalid verification code"
+        });
+        
+        // Log failed verification
+        logSecurityEvent('otp_verification_failed', { 
+          email, 
+          reason: result.message || "Invalid code" 
+        });
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      toast.error("Verification error", {
+        description: "An unexpected error occurred. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,6 +113,7 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
             value={otp}
             onChange={setOtp}
             className="gap-2"
+            disabled={loading}
           >
             <InputOTPGroup>
               {Array.from({ length: 6 }).map((_, index) => (
@@ -94,6 +135,7 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
               variant="link" 
               className="text-brand-green"
               onClick={handleResendOTP}
+              disabled={loading}
             >
               Resend Code
             </Button>
@@ -106,14 +148,23 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
           variant="outline"
           className="flex-1 border-white/10 bg-white/5 text-white hover:bg-white/10"
           onClick={onCancel}
+          disabled={loading}
         >
           Cancel
         </Button>
         <Button 
           className="flex-1 bg-brand-green hover:bg-brand-green/90"
           onClick={handleVerify}
+          disabled={loading}
         >
-          Verify & Login
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            "Verify & Login"
+          )}
         </Button>
       </div>
     </div>

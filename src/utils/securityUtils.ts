@@ -50,3 +50,57 @@ export const validateFileSecurityRequirements = (file: File): { valid: boolean; 
   
   return { valid: true };
 };
+
+// Generate a random Health ID
+export const generateHealthId = (): string => {
+  // In a real app, this would be handled on the backend with proper UUID generation
+  // This is just for demonstration purposes
+  const prefix = 'HL';
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = prefix;
+  
+  // Generate 8 random characters
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return result;
+};
+
+// Simulate IP logging for security
+export const logSecurityEvent = (event: string, details: Record<string, any> = {}): void => {
+  // In a real app, this would log to your security monitoring system
+  console.log(`Security Event: ${event}`, {
+    timestamp: new Date().toISOString(),
+    ...details
+  });
+};
+
+// Validate password strength
+export const validatePasswordStrength = (password: string): { 
+  valid: boolean; 
+  score: number; 
+  feedback: string;
+} => {
+  // Simple password validation - in a real app, use a more sophisticated approach
+  let score = 0;
+  let feedback = '';
+  
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  
+  const valid = score >= 3;
+  
+  if (score < 3) {
+    feedback = 'Password is too weak. Try adding uppercase, numbers or special characters.';
+  } else if (score < 5) {
+    feedback = 'Good password, but could be stronger.';
+  } else {
+    feedback = 'Strong password!';
+  }
+  
+  return { valid, score, feedback };
+};

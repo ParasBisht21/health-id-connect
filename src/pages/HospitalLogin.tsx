@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { HospitalLogin } from '@/components/auth/HospitalLogin';
+import { Shield, Lock, AlertTriangle } from 'lucide-react';
 
 const HospitalLoginPage = () => {
   return (
@@ -12,9 +13,28 @@ const HospitalLoginPage = () => {
       
       <HospitalLogin />
       
-      <p className="mt-8 text-gray-500 text-sm text-center">
-        Enhanced security with OTP verification for hospital access
-      </p>
+      <div className="mt-8 max-w-md">
+        <div className="flex items-start space-x-3 mb-4">
+          <Shield className="h-5 w-5 text-brand-green mt-0.5" />
+          <p className="text-gray-500 text-sm">
+            Enhanced security with OTP verification for hospital access
+          </p>
+        </div>
+        
+        <div className="flex items-start space-x-3 mb-4">
+          <Lock className="h-5 w-5 text-brand-green mt-0.5" />
+          <p className="text-gray-500 text-sm">
+            All communications are encrypted and secured with JWT authentication
+          </p>
+        </div>
+        
+        <div className="flex items-start space-x-3">
+          <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+          <p className="text-gray-500 text-sm">
+            Note: This is a demonstration. In production, a proper backend would handle authentication securely.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
