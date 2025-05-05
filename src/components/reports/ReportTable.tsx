@@ -23,6 +23,7 @@ interface Report {
 
 interface ReportTableProps {
   reports: Report[];
+  onDownload: (reportId: string) => void;
 }
 
 const getFileIcon = (format: string) => {
@@ -36,7 +37,7 @@ const getFileIcon = (format: string) => {
   }
 };
 
-export const ReportTable: React.FC<ReportTableProps> = ({ reports }) => {
+export const ReportTable: React.FC<ReportTableProps> = ({ reports, onDownload }) => {
   return (
     <Table>
       <TableHeader>
@@ -59,7 +60,12 @@ export const ReportTable: React.FC<ReportTableProps> = ({ reports }) => {
             <TableCell className="text-gray-300">{report.type}</TableCell>
             <TableCell className="text-gray-300">{report.hospital}</TableCell>
             <TableCell>
-              <Button variant="outline" size="icon" className="h-8 w-8 border-white/10 bg-white/5 hover:bg-white/10">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 border-white/10 bg-white/5 hover:bg-white/10"
+                onClick={() => onDownload(report.id)}
+              >
                 <Download className="h-4 w-4 text-gray-300" />
               </Button>
             </TableCell>
