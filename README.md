@@ -1,73 +1,95 @@
-# Welcome to your Lovable project
 
-## Project info
+# HealthSync - Medical Records System
 
-**URL**: https://lovable.dev/projects/a4fd3f36-48c9-46ea-8c63-d54fe4cb933c
+HealthSync is a secure medical records system that allows patients to access their health records and hospitals to manage patient information.
 
-## How can I edit this code?
+## Architecture
 
-There are several ways of editing your application.
+This application follows a modern, full-stack architecture:
 
-**Use Lovable**
+### Frontend (React + Vite)
+- React with TypeScript for type-safe code
+- Vite for fast development and optimized builds
+- Tailwind CSS for responsive UI
+- Shadcn UI components for consistent design
+- React Router for navigation
+- React Query for data fetching and state management
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a4fd3f36-48c9-46ea-8c63-d54fe4cb933c) and start prompting.
+### Backend (Node.js + Express)
+In a production environment, this application would connect to a Node.js and Express backend with:
 
-Changes made via Lovable will be committed automatically to this repo.
+- RESTful API endpoints for:
+  - User authentication and authorization
+  - Patient record management
+  - Hospital access control
+  - Medical report uploads and retrieval
 
-**Use your preferred IDE**
+- Authentication flow:
+  - JWT-based authentication for secure sessions
+  - Role-based access control (RBAC) for patients vs. hospitals
+  - OTP verification for enhanced security on hospital logins
+  - Health ID generation for unique patient identification
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Database (MongoDB)
+MongoDB would be used as the database due to its flexibility with:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Collections for:
+  - Users (patients and hospital staff)
+  - Medical records
+  - Reports
+  - Audit logs for security events
 
-Follow these steps:
+- Database schema would include:
+  - Patient profiles with medical history
+  - Hospital information
+  - Medical reports with metadata
+  - Security logs
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Storage (Firebase Storage / AWS S3)
+For storing medical reports and images:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Secure file uploads with access control
+- File type and size validation
+- Encrypted storage for sensitive documents
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Deployment
+The application could be deployed using:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- Frontend: Vercel for React application
+- Backend: Render/Heroku for Node.js API or Firebase Functions
+- Database: MongoDB Atlas for managed database
+- Storage: Firebase Storage or AWS S3
 
-**Edit a file directly in GitHub**
+## Current Status
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+This frontend demo simulates the backend functionality using:
 
-**Use GitHub Codespaces**
+- Mock API calls in `src/services/apiService.ts`
+- Simulated JWT-based authentication in `src/utils/authUtils.ts`
+- Security logging and encryption utilities in `src/utils/securityUtils.ts`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To convert this to a full production application, the frontend code would remain largely the same, but the mock API calls would be replaced with actual HTTP requests to a real backend API.
 
-## What technologies are used for this project?
+## Getting Started with Development
 
-This project is built with:
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Start the development server with `npm run dev`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Connecting to a Real Backend
 
-## How can I deploy this project?
+To connect this application to a real Node.js + Express backend:
 
-Simply open [Lovable](https://lovable.dev/projects/a4fd3f36-48c9-46ea-8c63-d54fe4cb933c) and click on Share -> Publish.
+1. Create a Node.js + Express API with the necessary endpoints
+2. Configure MongoDB for data storage
+3. Set up Firebase Storage or AWS S3 for file storage
+4. Update the API service in the frontend to make actual HTTP requests
+5. Deploy the backend and frontend separately
 
-## Can I connect a custom domain to my Lovable project?
+## Security Considerations
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- All sensitive data should be encrypted at rest and in transit
+- JWT tokens should have short expiration times
+- OTP verification should be implemented for high-security operations
+- Regular security audits should be performed
+- HIPAA compliance should be ensured for medical data

@@ -3,7 +3,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail, Eye, EyeOff } from "lucide-react";
+import { Mail, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { simulateLogin, storeAuthToken } from "@/utils/authUtils";
+import { toast } from "@/components/ui/sonner";
+import { useNavigate } from "react-router-dom";
+import { logSecurityEvent } from "@/utils/securityUtils";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -26,7 +30,9 @@ const formSchema = z.object({
 });
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,9 +42,48 @@ const Login = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // Here you would handle the login process
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      setLoading(true);
+      
+      // Log login attempt for security monitoring
+      logSecurityEvent('login_attempt', { email: values.email });
+      
+      // Call the login API
+      const result = await simulateLogin(values.email, values.password);
+      
+      if (result.success && result.token) {
+        // Store JWT token
+        storeAuthToken(result.token);
+        
+        toast.success("Login successful", {
+          description: "Welcome back to HealthSync"
+        });
+        
+        // Log successful login
+        logSecurityEvent('login_successful', { email: values.email });
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        toast.error("Login failed", {
+          description: result.message || "Invalid credentials"
+        });
+        
+        // Log failed login
+        logSecurityEvent('login_failed', { 
+          email: values.email, 
+          reason: result.message || "Invalid credentials" 
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error("Login error", {
+        description: "An unexpected error occurred. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -71,6 +116,7 @@ const Login = () => {
                           {...field} 
                           type="email" 
                           className="pl-10 h-12 bg-white/5 border-white/10 text-white" 
+                          disabled={loading}
                         />
                         <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       </div>
@@ -91,6 +137,7 @@ const Login = () => {
                           placeholder="••••••••"
                           type={showPassword ? "text" : "password"}
                           className="pr-10 pl-3 h-12 bg-white/5 border-white/10 text-white"
+                          disabled={loading}
                           {...field}
                         />
                         <button
@@ -111,11 +158,26 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-white font-medium">
-                Login
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-white font-medium"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </form>
           </Form>
+          
+          <div className="mt-4 text-center text-sm text-gray-400">
+            Demo credentials: patient@example.com / password123
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 text-center text-sm">
           <div className="text-gray-400">

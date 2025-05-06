@@ -13,8 +13,17 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
 import HospitalLoginPage from "./pages/HospitalLogin";
+import { AuthProvider } from "./components/auth/AuthContext";
 
-const queryClient = new QueryClient();
+// Initialize React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,19 +31,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/hospital-login" element={<HospitalLoginPage />} />
-          
-          {/* Protected routes with layout */}
-          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-          <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
-          <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/hospital-login" element={<HospitalLoginPage />} />
+            
+            {/* Protected routes with layout */}
+            <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+            <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
+            <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

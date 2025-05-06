@@ -3,7 +3,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Mail, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { storeAuthToken } from "@/utils/authUtils";
+import { registerUser } from "@/services/apiService";
+import { toast } from "@/components/ui/sonner";
+import { useNavigate } from "react-router-dom";
+import { logSecurityEvent } from "@/utils/securityUtils";
+import { validatePasswordStrength } from "@/utils/securityUtils";
 
 // Form validation schema
 const formSchema = z.object({
@@ -36,8 +42,11 @@ const formSchema = z.object({
 });
 
 const Register = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [passwordStrength, setPasswordStrength] = React.useState({ valid: false, score: 0, feedback: "" });
+  const [loading, setLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,11 +58,75 @@ const Register = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // For now we'll just log the values, later we'll connect to a backend
-    console.log(values);
-    // Here you would handle the registration process
-    // and generate a unique health ID
+  // Check password strength
+  const handlePasswordChange = (password: string) => {
+    if (password.length > 0) {
+      const strength = validatePasswordStrength(password);
+      setPasswordStrength(strength);
+    } else {
+      setPasswordStrength({ valid: false, score: 0, feedback: "" });
+    }
+  };
+
+  React.useEffect(() => {
+    const password = form.watch("password");
+    handlePasswordChange(password);
+  }, [form.watch("password")]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      setLoading(true);
+      
+      // Additional password strength validation
+      if (!passwordStrength.valid) {
+        toast.error("Password too weak", {
+          description: passwordStrength.feedback
+        });
+        return;
+      }
+      
+      // Log registration attempt
+      logSecurityEvent('registration_attempt', { email: values.email });
+      
+      // Call the registration API
+      const result = await registerUser({
+        email: values.email,
+        password: values.password,
+        fullName: values.fullName
+      });
+      
+      if (result.success && result.data) {
+        // Store JWT token
+        storeAuthToken(result.data.token);
+        
+        toast.success("Registration successful", {
+          description: `Welcome to HealthSync! Your Health ID is ${result.data.healthId}`
+        });
+        
+        // Log successful registration
+        logSecurityEvent('registration_successful', { email: values.email });
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        toast.error("Registration failed", {
+          description: result.error || "Could not create account"
+        });
+        
+        // Log failed registration
+        logSecurityEvent('registration_failed', { 
+          email: values.email, 
+          reason: result.error || "Unknown error" 
+        });
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error("Registration error", {
+        description: "An unexpected error occurred. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -85,6 +158,7 @@ const Register = () => {
                           placeholder="John Doe" 
                           {...field} 
                           className="pl-10 h-12 bg-white/5 border-white/10 text-white" 
+                          disabled={loading}
                         />
                         <User className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       </div>
@@ -106,6 +180,7 @@ const Register = () => {
                           {...field} 
                           type="email" 
                           className="pl-10 h-12 bg-white/5 border-white/10 text-white" 
+                          disabled={loading}
                         />
                         <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       </div>
@@ -126,6 +201,7 @@ const Register = () => {
                           placeholder="••••••••"
                           type={showPassword ? "text" : "password"}
                           className="pr-10 pl-3 h-12 bg-white/5 border-white/10 text-white"
+                          disabled={loading}
                           {...field}
                         />
                         <button
@@ -142,6 +218,25 @@ const Register = () => {
                         </button>
                       </div>
                     </FormControl>
+                    {passwordStrength.score > 0 && field.value && (
+                      <div className="mt-1">
+                        <div className="h-1 w-full bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              passwordStrength.score >= 4 ? "bg-green-500" : 
+                              passwordStrength.score >= 3 ? "bg-blue-500" : 
+                              passwordStrength.score >= 2 ? "bg-yellow-500" : "bg-red-500"
+                            }`} 
+                            style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                          />
+                        </div>
+                        <p className={`text-xs mt-1 ${
+                          passwordStrength.valid ? "text-green-400" : "text-yellow-400"
+                        }`}>
+                          {passwordStrength.feedback}
+                        </p>
+                      </div>
+                    )}
                     <FormMessage className="text-red-400" />
                   </FormItem>
                 )}
@@ -158,6 +253,7 @@ const Register = () => {
                           placeholder="••••••••"
                           type={showConfirmPassword ? "text" : "password"}
                           className="pr-10 pl-3 h-12 bg-white/5 border-white/10 text-white"
+                          disabled={loading}
                           {...field}
                         />
                         <button
@@ -178,8 +274,19 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-white font-medium">
-                Register
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-white font-medium"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Register"
+                )}
               </Button>
             </form>
           </Form>

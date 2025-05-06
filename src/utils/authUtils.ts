@@ -1,5 +1,6 @@
 
 import { toast } from "@/components/ui/sonner";
+import { loginUser, verifyOTP } from "@/services/apiService";
 
 // Interface for JWT payload
 interface JwtPayload {
@@ -75,28 +76,26 @@ export const simulateLogin = async (
   email: string, 
   password: string
 ): Promise<{ success: boolean; token?: string; message?: string }> => {
-  // In a real app, this would be an API call to your Node.js + Express backend
-  // For demo purposes, we'll simulate a successful login for specific credentials
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Mock hospital credentials check
-  if (email === "hospital@example.com" && password === "password123") {
-    const token = createMockJwtToken({
-      id: "hosp_123456",
-      email: email,
-      role: "hospital"
-    });
+  try {
+    // Use our API service
+    const response = await loginUser(email, password);
     
-    return {
-      success: true,
-      token: token
-    };
-  } else {
+    if (response.success && response.data) {
+      return {
+        success: true,
+        token: response.data.token
+      };
+    } else {
+      return {
+        success: false,
+        message: response.error || "Login failed"
+      };
+    }
+  } catch (error) {
+    console.error("Login error:", error);
     return {
       success: false,
-      message: "Invalid email or password"
+      message: "An unexpected error occurred"
     };
   }
 };
@@ -106,26 +105,26 @@ export const simulateVerifyOTP = async (
   email: string, 
   otp: string
 ): Promise<{ success: boolean; token?: string; message?: string }> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // In a real app, this would verify the OTP with your backend
-  // For demo, we'll accept any 6-digit code
-  if (otp.length === 6) {
-    const token = createMockJwtToken({
-      id: "hosp_123456",
-      email: email,
-      role: "hospital"
-    });
+  try {
+    // Use our API service
+    const response = await verifyOTP(email, otp);
     
-    return {
-      success: true,
-      token: token
-    };
-  } else {
+    if (response.success && response.data) {
+      return {
+        success: true,
+        token: response.data.token
+      };
+    } else {
+      return {
+        success: false,
+        message: response.error || "Verification failed"
+      };
+    }
+  } catch (error) {
+    console.error("OTP verification error:", error);
     return {
       success: false,
-      message: "Invalid verification code"
+      message: "An unexpected error occurred"
     };
   }
 };
