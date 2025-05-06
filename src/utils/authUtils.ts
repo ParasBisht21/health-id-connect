@@ -1,6 +1,6 @@
 
 import { toast } from "@/components/ui/sonner";
-import { loginUser, verifyOTP } from "@/services/apiService";
+import { supabase } from "@/integrations/supabase/client";
 
 // Interface for JWT payload
 interface JwtPayload {
@@ -71,27 +71,37 @@ export const removeAuthToken = (): void => {
   localStorage.removeItem('healthsync_auth_token');
 };
 
-// Simulate login
+// Login function using Supabase
 export const simulateLogin = async (
   email: string, 
   password: string
 ): Promise<{ success: boolean; token?: string; message?: string }> => {
   try {
-    // Use our API service
-    const response = await loginUser(email, password);
+    // Use Supabase authentication
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
     
-    if (response.success && response.data) {
+    if (error) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+    
+    if (data.session) {
       return {
         success: true,
-        token: response.data.token
+        token: data.session.access_token
       };
     } else {
       return {
         success: false,
-        message: response.error || "Login failed"
+        message: "No session returned from authentication"
       };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Login error:", error);
     return {
       success: false,
@@ -100,27 +110,35 @@ export const simulateLogin = async (
   }
 };
 
-// Simulate OTP verification
+// Verify OTP function
 export const simulateVerifyOTP = async (
   email: string, 
   otp: string
 ): Promise<{ success: boolean; token?: string; message?: string }> => {
   try {
-    // Use our API service
-    const response = await verifyOTP(email, otp);
+    // In a real implementation, we would verify the OTP with a backend service
+    // For demo purposes, we'll just check against a hardcoded value
+    const DEMO_OTP = "123456";
     
-    if (response.success && response.data) {
+    if (otp === DEMO_OTP) {
+      // Create a simulated session token
+      const token = createMockJwtToken({
+        id: `user-${Date.now()}`,
+        email,
+        role: 'hospital'
+      });
+      
       return {
         success: true,
-        token: response.data.token
+        token
       };
     } else {
       return {
         success: false,
-        message: response.error || "Verification failed"
+        message: "Invalid verification code"
       };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("OTP verification error:", error);
     return {
       success: false,
