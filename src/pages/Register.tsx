@@ -15,12 +15,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { storeAuthToken } from "@/utils/authUtils";
-import { registerUser } from "@/services/apiService";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
 import { logSecurityEvent } from "@/utils/securityUtils";
 import { validatePasswordStrength } from "@/utils/securityUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 // Form validation schema
 const formSchema = z.object({
@@ -88,38 +87,48 @@ const Register = () => {
       // Log registration attempt
       logSecurityEvent('registration_attempt', { email: values.email });
       
-      // Call the registration API
-      const result = await registerUser({
+      // Register with Supabase
+      const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
-        fullName: values.fullName
+        options: {
+          data: {
+            full_name: values.fullName,
+            role: 'patient'
+          }
+        }
       });
       
-      if (result.success && result.data) {
-        // Store JWT token
-        storeAuthToken(result.data.token);
-        
-        toast.success("Registration successful", {
-          description: `Welcome to HealthSync! Your Health ID is ${result.data.healthId}`
-        });
-        
-        // Log successful registration
-        logSecurityEvent('registration_successful', { email: values.email });
-        
-        // Redirect to dashboard
-        navigate('/dashboard');
-      } else {
+      if (error) {
         toast.error("Registration failed", {
-          description: result.error || "Could not create account"
+          description: error.message
         });
         
         // Log failed registration
         logSecurityEvent('registration_failed', { 
           email: values.email, 
-          reason: result.error || "Unknown error" 
+          reason: error.message
         });
+        return;
       }
-    } catch (error) {
+
+      // Log successful registration
+      logSecurityEvent('registration_successful', { email: values.email });
+      
+      // Check if email confirmation is required
+      if (data.user && data.session) {
+        toast.success("Registration successful", {
+          description: "Your account has been created. Redirecting to dashboard..."
+        });
+        navigate('/dashboard');
+      } else {
+        toast.success("Registration successful", {
+          description: "Please check your email to confirm your account"
+        });
+        navigate('/login');
+      }
+      
+    } catch (error: any) {
       console.error('Registration error:', error);
       toast.error("Registration error", {
         description: "An unexpected error occurred. Please try again."

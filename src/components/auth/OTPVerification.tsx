@@ -1,11 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "@/components/ui/sonner";
 import { Shield, Loader2 } from "lucide-react";
-import { simulateVerifyOTP, storeAuthToken } from '@/utils/authUtils';
 import { logSecurityEvent } from '@/utils/securityUtils';
+
+// In a real application, this would actually verify with a backend
+// For now it's just a simulation
+const DEMO_OTP = "123456";
 
 interface OTPVerificationProps {
   email: string;
@@ -60,13 +62,9 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
       // Log OTP verification attempt
       logSecurityEvent('otp_verification_attempt', { email });
       
-      // Simulate API call to verify OTP
-      const result = await simulateVerifyOTP(email, otp);
-      
-      if (result.success && result.token) {
-        // Store JWT token
-        storeAuthToken(result.token);
-        
+      // For demo purposes, we'll just check if the OTP matches our demo code
+      // In a real app, this would verify against a backend service
+      if (otp === DEMO_OTP) {
         toast.success("OTP verified successfully");
         
         // Log successful verification
@@ -75,13 +73,13 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
         onVerified();
       } else {
         toast.error("Verification failed", {
-          description: result.message || "Invalid verification code"
+          description: "Invalid verification code"
         });
         
         // Log failed verification
         logSecurityEvent('otp_verification_failed', { 
           email, 
-          reason: result.message || "Invalid code" 
+          reason: "Invalid code" 
         });
       }
     } catch (error) {

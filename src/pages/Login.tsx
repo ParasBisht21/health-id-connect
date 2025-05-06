@@ -15,9 +15,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { simulateLogin, storeAuthToken } from "@/utils/authUtils";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { logSecurityEvent } from "@/utils/securityUtils";
 
 const formSchema = z.object({
@@ -49,34 +49,33 @@ const Login = () => {
       // Log login attempt for security monitoring
       logSecurityEvent('login_attempt', { email: values.email });
       
-      // Call the login API
-      const result = await simulateLogin(values.email, values.password);
+      // Call Supabase authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password
+      });
       
-      if (result.success && result.token) {
-        // Store JWT token
-        storeAuthToken(result.token);
-        
-        toast.success("Login successful", {
-          description: "Welcome back to HealthSync"
-        });
-        
-        // Log successful login
-        logSecurityEvent('login_successful', { email: values.email });
-        
-        // Redirect to dashboard
-        navigate('/dashboard');
-      } else {
+      if (error) {
         toast.error("Login failed", {
-          description: result.message || "Invalid credentials"
+          description: error.message
         });
         
         // Log failed login
         logSecurityEvent('login_failed', { 
           email: values.email, 
-          reason: result.message || "Invalid credentials" 
+          reason: error.message
         });
+        return;
       }
-    } catch (error) {
+      
+      if (data.user) {
+        // Log successful login
+        logSecurityEvent('login_successful', { email: values.email });
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
       console.error('Login error:', error);
       toast.error("Login error", {
         description: "An unexpected error occurred. Please try again."

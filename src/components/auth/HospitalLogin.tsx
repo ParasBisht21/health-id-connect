@@ -6,15 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { OTPVerification } from './OTPVerification';
-import { simulateLogin } from '@/utils/authUtils';
 import { logSecurityEvent } from '@/utils/securityUtils';
 import { Loader2 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from 'react-router-dom';
 
 export const HospitalLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,25 +35,62 @@ export const HospitalLogin = () => {
       // Log login attempt for security monitoring
       logSecurityEvent('hospital_login_attempt', { email });
       
-      // Simulate API call to backend
-      const result = await simulateLogin(email, password);
+      // Sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (result.success) {
-        toast.success("Initial verification successful", {
-          description: "Please enter the OTP sent to your email"
-        });
-        setShowOTP(true);
-      } else {
+      if (error) {
         toast.error("Login failed", {
-          description: result.message || "Invalid credentials"
+          description: error.message
         });
         
         // Log failed attempt
         logSecurityEvent('hospital_login_failed', { 
           email, 
-          reason: result.message || "Invalid credentials" 
+          reason: error.message
         });
+        return;
       }
+      
+      // Check if the user has the hospital role
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profileError) {
+        toast.error("Error fetching user role", {
+          description: profileError.message
+        });
+        return;
+      }
+      
+      if (profileData.role !== 'hospital') {
+        toast.error("Access denied", {
+          description: "This login is only for hospital accounts"
+        });
+        
+        // Sign out the user since they don't have the right role
+        await supabase.auth.signOut();
+        
+        // Log failed attempt
+        logSecurityEvent('hospital_login_failed', { 
+          email, 
+          reason: "Not a hospital account" 
+        });
+        return;
+      }
+
+      // For demonstration, we'll still show the OTP verification flow
+      // In a production app, this might use a real OTP via email/SMS
+      toast.success("Initial verification successful", {
+        description: "Please enter the OTP sent to your email"
+      });
+      setShowOTP(true);
+      
     } catch (error) {
       console.error('Login error:', error);
       toast.error("Login error", {
@@ -63,16 +102,17 @@ export const HospitalLogin = () => {
   };
 
   const handleOTPVerified = () => {
-    // In a real app, JWT would be stored and user redirected
     // Log successful login
     logSecurityEvent('hospital_login_successful', { email });
     
     // Redirect to dashboard
-    window.location.href = '/dashboard';
+    navigate('/dashboard');
   };
 
   const handleCancelOTP = () => {
     setShowOTP(false);
+    // Sign out since they canceled the OTP step
+    supabase.auth.signOut();
   };
 
   if (showOTP) {
